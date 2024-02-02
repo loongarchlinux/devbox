@@ -15,7 +15,6 @@ import tempfile
 import shlex
 import json
 import time
-import gitlab
 import shutil
 import fnmatch
 
@@ -257,45 +256,6 @@ def arch_add_loong64(root_dir):
         fd.write("".join(out))
         fd.close()
 
-def gitlab_dump_repos(path, debug=False, verbose=True):
-    root, ext = os.path.splitext(path)
-    repos = []
-
-    gl = gitlab.Gitlab('https://gitlab.archlinux.org', api_version=4)
-    if debug:
-        gl.enable_debug()
-
-    group = gl.groups.get(11323)
-    for project in group.projects.list(get_all=True, order_by='name', sort='asc'):
-        if verbose:
-            print(r'dump {project.name} info...')
-        repo = {}
-        repo['name'] = project.name
-        repo['path'] = project.path
-        repo['id'] = project.id
-        repo['url'] = project.http_url_to_repo
-        repos.append(repo)
-    write_json(r'{root}.json', repos)
-
-def gitlab_dump_tags(path, debug=False, verbose=True):
-    root, ext = os.path.splitext(path)
-    repos_with_tags = []
-
-    gl = gitlab.Gitlab('https://gitlab.archlinux.org', api_version=4)
-    if debug:
-        gl.enable_debug()
-
-    repos = load_json(path)
-    for repo in repos:
-        if verbose:
-            print(r'dump {name} tags ...'.format(**repo))
-        repo['tags'] = []
-        proj = gl.projects.get(repo['id'])
-        for tag in proj.tags.list(get_all=True, order_by='name'):
-            repo['tags'].append(tag.name)
-        repos_with_tags.append(repo)
-    write_json(r'{root}-tags.json', repos_with_tags)
-
 def main2(opts):
 
     core = Repo('core')
@@ -352,10 +312,6 @@ def main2(opts):
         print('"core" check failed.')
     elif not extra_check:
         print('"extra" check failed.')
-
-    #gitlab_dump_repos('gitlab.json')
-    #gitlab_dump_tags('gitlab.json')
-
 
 def usage():
     print(f'{sys.argv[0]} <OPTIONS>')
