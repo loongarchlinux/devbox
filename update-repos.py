@@ -191,6 +191,8 @@ management_repo = {{directory = "{self.work}/management"}}
         error = False
         for repo in self.packages.keys():
             repo_dir = os.path.join(self.cache, repo)
+            if not os.path.isdir(repo_dir):
+                os.makedirs(repo_dir, exist_ok = True)
             for pkg in self.packages[repo]:
                 name = pkg['name']
                 version = pkg['version']
